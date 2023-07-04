@@ -1,0 +1,67 @@
+//LeadTrigger
+trigger LeadTrigger on Lead (before insert, before update, before delete, after insert, after update, after delete, after undelete) {
+​
+   SWITCH on Trigger.operationType {
+   WHEN BEFORE_INSERT{
+       
+        LeadTriggerHandler.populateStateFromWebsite(Trigger.new);
+              
+        
+       /*
+       For( lead leadFromWeb: Trigger.new){
+            if (leadFromWeb.State__c != null && leadFromWeb.LeadSource == 'Website') {
+                leadFromWeb.state = leadFromWeb.State__c ;
+​
+            }
+        }
+       
+       */
+       
+   }
+       
+   WHEN BEFORE_UPDATE{}
+   WHEN BEFORE_DELETE{}
+   WHEN AFTER_INSERT{}
+   WHEN AFTER_UPDATE{}
+   WHEN AFTER_DELETE{}
+   WHEN AFTER_UNDELETE{}
+                }}
+​
+// LeadTriggerHandler
+public class LeadTriggerHandler {
+    
+        public static void populateStateFromWebsite (List<Lead> leadFromWebList){
+        
+        For( lead leadFromWeb: leadFromWebList){
+            if (leadFromWeb.State__c != null && leadFromWeb.LeadSource == 'Website') {
+                leadFromWeb.state = leadFromWeb.State__c ;
+​
+            }
+        }
+    }
+​
+}
+​
+//LeadTriggerTest
+@IsTest
+private class LeadTriggerTest {
+​
+    @IsTest
+    static void BeforeInsertTest() {
+        
+        Lead leadRecord = new Lead();
+        
+        leadRecord.FirstName = 'John';
+        leadRecord.LastName = 'Doe';
+        leadRecord.LeadSource = 'Website';
+        leadRecord.State__c = 'CO: Colorado';
+​
+        insert leadRecord;
+        
+        Lead dbLead = [SELECT Id, State FROM Lead WHERE Id = :leadRecord.Id];
+        
+        System.assertEquals('CO: Colorado', dbLead.state, 'State field was not populated correctly.');
+        System.assertNotEquals('55: Samsun', dbLead.state);
+    }
+​
+}
